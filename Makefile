@@ -2,6 +2,10 @@ OUT ?= build
 
 all: netstack gvisor lwip ugate
 
+
+stop:
+
+
 netstack:
 	$(MAKE) TAG=netstack gotag
 
@@ -13,7 +17,7 @@ lwip:
 	$(MAKE) TAG=lwip gotag
 
 ugate:
-	go build -o ${OUT}/ugate github.com/costinm/ugate/cmd/ugate
+	CGO_ENABLED=0 go build -o ${OUT}/ugate github.com/costinm/ugate/cmd/ugate
 	ls -l ${OUT}/ugate
 	strip ${OUT}/ugate
 	ls -l ${OUT}/ugate

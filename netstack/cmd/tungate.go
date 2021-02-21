@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/costinm/tungate"
-	"github.com/costinm/tungate/pkg/netstack"
+	"github.com/costinm/tungate/netstack"
 	"github.com/costinm/ugate"
 )
 

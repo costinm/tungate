@@ -1,4 +1,4 @@
-module github.com/costinm/tungate
+module github.com/costinm/tungate/gvisor
 
 go 1.16
 
@@ -11,7 +11,8 @@ go 1.16
 //replace github.com/costinm/ugate => ../ugate
 
 require (
+	github.com/costinm/tungate v0.0.0-20210106054017-3c4979c12690
 	github.com/costinm/ugate v0.0.0-20210106052904-4da1a58a92e6
-	github.com/eycorsican/go-tun2socks v1.16.11
-	github.com/songgao/water v0.0.0-20200317203138-2b4b6d7c09d
+	gvisor.dev/gvisor v0.0.0-20201215175918-b0f23fb7e0cf
+
 )

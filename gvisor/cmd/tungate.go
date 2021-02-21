@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/costinm/tungate"
-	"github.com/costinm/tungate/pkg/gvisor"
+	"github.com/costinm/tungate/gvisor"
 	"github.com/costinm/ugate"
 )
 
