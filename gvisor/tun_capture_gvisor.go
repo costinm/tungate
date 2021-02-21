@@ -1,6 +1,3 @@
-// +build !netstack
-// +build !lwip
-
 package gvisor
 
 import (

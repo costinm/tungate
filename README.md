@@ -1,8 +1,31 @@
-# tungate
+# TUN-based gateway.
 
-Gateway using a TUN and netstack. Netstack is a golang implementation of TCP/IP stack 
-used in gVisor. This project is using a patched version, with changes to allow capturing
-all outgoing traffic.
+This package is an extension to the costinm/ugate package, providing 
+capture using a TUN device, primarily used for Android. 
+
+In regular Linux it is also possible to use a TUN and routes, but 
+iptables is significantly faster.
+
+To use the TUN we need a TCP/IP stack in user space - the 
+gateway works at L3/L7, multiplexing all TCP/HTTP connections. 
+
+The default implementation uses LWIP. 
+
+Originally we used a fork of google netstack, with few extensions to 
+capture all ports. Netstack is deprecated now, replaced by gvisor. 
+
+This repo includes all 3 variants - current testing shows 
+gvisor to be faster but it has far more dependencies and is 
+more complex/harder to integrate.
+
+`make all` will build all 3, with a minimal proxy config, and 
+show the size and stripped size. Current numbers on stripped:
+
+- No TUN: 5.7 M
+- LWIP: 6 M
+- Netstack: 6.7 M
+- GVisor: 18 M
+
 
 ``` 
 # setup a tun device ('dmesh1' in this example), see the script for example
@@ -47,7 +70,7 @@ ip roule show
 ip route get 1.2.3.4 mark 1338
 ```
 
-Entry: 
+GVisor stack, emulating iptables: 
 - rawfile_unsafe.go BlockingReadv or the channel
 - nic.go DeliverNetworkPacket
 - ipv4.go HandlePacket - may call IPTables.Check
@@ -55,7 +78,6 @@ Entry:
 - transport_demuxer.go deliverRawPacket - handle "Raw" endpoints
 - transport_demuxer.go deliverPacket -> endpointsByNIC.handlePacket
 - tcp.go QueuePacket to the tcp endpoint
-
 - Background loops:
     - accept.go protocolListenLoop -> handleSynSegment
     
