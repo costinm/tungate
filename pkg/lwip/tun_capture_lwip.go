@@ -32,7 +32,11 @@ func (t *LWIPTun) ReceiveTo(conn core.UDPConn, data []byte, addr *net.UDPAddr) e
 }
 
 func (t *LWIPTun) Handle(conn net.Conn, target *net.TCPAddr) error {
-	return t.tcpHandler.HandleTUN(conn, target)
+	// Must return - TCP con will be moved to connected after return.
+	// err will abort. While this is executing, will stay in connected
+	// TODO: extra param to do all processing and do the proxy in background.
+	go t.tcpHandler.HandleTUN(conn, target)
+	return nil
 }
 
 func (nt *LWIPTun) WriteTo(data []byte, dst *net.UDPAddr, src *net.UDPAddr) (int, error) {
@@ -55,7 +59,7 @@ func NewTUNFD(tunDev io.ReadWriteCloser, handler tungate.TUNHandler, udpNat tung
 	core.RegisterUDPConnHandler(t)
 	
 	core.RegisterOutputFn(func(data []byte) (int, error) {
-		//log.Println("ip2tun: ", len(data))
+		//log.Println("ip2tunW: ", len(data))
 		return tunDev.Write(data)
 	})
 
@@ -68,12 +72,12 @@ func NewTUNFD(tunDev io.ReadWriteCloser, handler tungate.TUNHandler, udpNat tung
 				log.Println("Err tun", err)
 				return
 			}
+			//log.Println("tun2ipR: ", n)
 			_, err = lwip.Write(ba[0:n])
 			if err != nil {
 				log.Println("Err lwip", err)
 				return
 			}
-			//log.Println("tun2ip: ", n)
 		}
 	}()
 

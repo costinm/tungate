@@ -186,6 +186,9 @@ func NewTUNFD(fd io.ReadWriteCloser, handler tungate.TUNHandler, udpNat tungate.
 		ep := channel.New(1024, 1500, "")
 		linkID = ep
 
+		t := NewGvisorTunCapture(&linkID, handler, udpNat, false)
+
+
 		go func() {
 			m1 := make([]byte, 1600)
 			for {
@@ -200,7 +203,6 @@ func NewTUNFD(fd io.ReadWriteCloser, handler tungate.TUNHandler, udpNat tungate.
 					Data: b.ToVectorisedView(),
 				})
 				ep.InjectInbound(ipv4.ProtocolNumber, pkt)
-
 			}
 		}()
 
@@ -233,7 +235,7 @@ func NewTUNFD(fd io.ReadWriteCloser, handler tungate.TUNHandler, udpNat tungate.
 		//linkID = NewReaderWriterLink(fd, fd, &Options{MTU: 1600})
 //	}
 
-	return NewGvisorTunCapture(&linkID, handler, udpNat, false)
+	return t
 }
 
 type mymatch struct {
@@ -270,22 +272,24 @@ func NewGvisorTunCapture(ep *stack.LinkEndpoint, handler tungate.TUNHandler, udp
 	}
 	ipt := netfilter.DefaultLinuxTables()
 	//// 3 tables for ip4
-	//natt := ipt.GetTable(stack.NATID, false)
-	//// To trigger modified = true
-	//ipt.ReplaceTable(stack.NATID, natt, false)
-	//// Default has 5 rules.
-	//// HAck !!!!
-	//natt.Rules[0].Target = &stack.RedirectTarget{
-	//	Port: 5201,
-	//	NetworkProtocol: ipv4.ProtocolNumber}
-	//natt.Rules[0].Filter = stack.IPHeaderFilter{
-	//	Protocol: tcp.ProtocolNumber,
-	//	CheckProtocol: true,
-	//}
-	//// Can only create matcher using unmarshal
-	//natt.Rules[0].Matchers = []stack.Matcher{
-	//	&mymatch{},
-	//}
+	if false {
+		natt := ipt.GetTable(stack.NATID, false)
+		//// To trigger modified = true
+		ipt.ReplaceTable(stack.NATID, natt, false)
+		//// Default has 5 rules.
+		//// HAck !!!!
+		natt.Rules[0].Target = &stack.RedirectTarget{
+			Port:            5201,
+			NetworkProtocol: ipv4.ProtocolNumber}
+		natt.Rules[0].Filter = stack.IPHeaderFilter{
+			Protocol:      tcp.ProtocolNumber,
+			CheckProtocol: true,
+		}
+		//// Can only create matcher using unmarshal
+		natt.Rules[0].Matchers = []stack.Matcher{
+			&mymatch{},
+		}
+	}
 
 	t.IPStack = stack.New(stack.Options{
 		NetworkProtocols:   netProtos,
@@ -557,6 +561,7 @@ func (nt *GvisorTun) DefTcpServer(handler tungate.TUNHandler)  {
 	}
 
 	tl := gonet.NewTCPListener(nt.IPStack, &wq, ep)
+	tl.ReverseAddr = true
 	for {
 		c, err := tl.Accept()
 		if err != nil {
