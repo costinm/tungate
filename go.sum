@@ -4,6 +4,8 @@ github.com/costinm/go-tun2socks v1.16.12-0.20210328172757-88f6d54235cb h1:45NOoC
 github.com/costinm/go-tun2socks v1.16.12-0.20210328172757-88f6d54235cb/go.mod h1:wgB2BFT8ZaPKyKOQ/5dljMG/YIow+AIXyq4KBwJ5sGQ=
 github.com/costinm/ugate v0.0.0-20210313180958-969e14c9b1c7 h1:3WsbmxZOjtONHyT1C8x5+iqe+YzwlnUWr23Vz1Dw2XU=
 github.com/costinm/ugate v0.0.0-20210313180958-969e14c9b1c7/go.mod h1:1cx6XBy4W2Ruy8fUKdbukrjMkwFJxlgPxE8vwqFiLAk=
+github.com/costinm/ugate v0.0.0-20210328173325-afc113d007e8 h1:U6yq03qPlqFDH4JNmLyZctdqO/M9jHuu79iTZEuJjjw=
+github.com/costinm/ugate v0.0.0-20210328173325-afc113d007e8/go.mod h1:1cx6XBy4W2Ruy8fUKdbukrjMkwFJxlgPxE8vwqFiLAk=
 github.com/songgao/water v0.0.0-20190725173103-fd331bda3f4b h1:+y4hCMc/WKsDbAPsOQZgBSaSZ26uh2afyaWeVg/3s/c=
 github.com/songgao/water v0.0.0-20190725173103-fd331bda3f4b/go.mod h1:P5HUIBuIWKbyjl083/loAegFkfbFNx5i2qEP4CNbm7E=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2 h1:VklqNMn3ovrHsnt90PveolxSbWFaJdECFbxSq0Mqo2M=
