@@ -20,7 +20,7 @@ env
 # Default 'dmesh', user 'istio-proxy', IP 10.12.0.1
 setupTUN() {
   ip tuntap add dev ${TUNDEV} mode tun user ${TUNUSER} group ${TUNUSER}
-  ip addr add ${TUNNET}.0.1/16 dev dmesh1
+  ip addr add ${TUNNET}.0.1/16 dev ${TUNDEV}
   # No IP6 address - confuses linux
   ip link set ${TUNDEV} up
 
@@ -40,8 +40,8 @@ setup() {
   # For iptables-based capture to TUN
 
   # For iptables capture/marks:
-  ### ip route add default dev ${TUNDEV} table ${TUNFW}8
-  ### ip rule add  fwmark ${TUNFW}8 priority 10  lookup ${TUNFW}8
+  ip route add default dev ${TUNDEV} table ${TUNFW}8
+  ip rule add  fwmark ${TUNFW}8 priority 10  lookup ${TUNFW}8
 
   # Route various ranges to dmesh1 - the gate can't initiate its own connections
   # to those ranges. Service VIPs can also use this simpler model.
@@ -61,7 +61,7 @@ cleanup() {
   # App must be stopped
   ip tuntap del dev ${TUNDEV} mode tun
 
-  ip rule delete  fwmark ${TUNFW}8 priority 10  lookup 1338
+  ip rule delete  fwmark ${TUNFW}8 priority 10  lookup ${TUNFW}8
   ip route del default dev ${TUNDEV} table ${TUNFW}8
 
   ip rule del fwmark ${TUNFW}7 lookup ${TUNFW}7
@@ -106,8 +106,9 @@ start() {
   # Explicit
   #iptables -t mangle -A DMESH_MANGLE_OUT -p tcp -d 169.254.169.254 -j DROP
 
-  # Explicit by-port capture
-  iptables -t mangle -A DMESH_MANGLE_OUT -j MARK -p tcp --dport 5201 --set-mark 1338
+  # Explicit by-port capture, for testing
+  iptables -t mangle -A DMESH_MANGLE_OUT -j MARK -p tcp --dport 5201 --set-mark ${TUNFW}8
+  iptables -t mangle -A DMESH_MANGLE_OUT -j MARK -p udp --dport 5201 --set-mark ${TUNFW}8
   #iptables -t mangle -A DMESH_MANGLE_OUT -j MARK -p tcp --dport 80 --set-mark 1338
 
   # Jump to the ISTIO_OUTPUT chain from OUTPUT chain for all tcp traffic.

@@ -22,12 +22,21 @@ type LWIPTun struct {
 	udpHandler tungate.UDPHandler
 }
 
+// Called by udp_conn.newUDPConn. conn will hold a chan of packets.
+// If err != nil - conn will be closed
+// Else ReceiveTo will be called on each pending packet.
 func (t *LWIPTun) Connect(conn core.UDPConn, target *net.UDPAddr) error {
 	return nil
 }
 
+// Will get pending packets for 'connections'.
+// The handling of udpRecvFn:
+// - convert srcAddr/dstAddr params
+// - srcAddr used to construct a 'connection'
+// - if not found - construct one.
 func (t *LWIPTun) ReceiveTo(conn core.UDPConn, data []byte, addr *net.UDPAddr) error {
-	//t.udpHandler.HandleUdp()
+	la := conn.LocalAddr()
+	go t.udpHandler.HandleUdp(addr.IP, uint16(addr.Port), la.IP, uint16(la.Port), data)
 	return nil
 }
 
@@ -39,7 +48,11 @@ func (t *LWIPTun) Handle(conn net.Conn, target *net.TCPAddr) error {
 	return nil
 }
 
-func (nt *LWIPTun) WriteTo(data []byte, dst *net.UDPAddr, src *net.UDPAddr) (int, error) {
+// Inject a packet into the UDP stack.
+// dst us a local address, corresponding to an open local UDP port.
+// TODO: find con from connect, close the conn periodically
+func (t *LWIPTun) WriteTo(data []byte, dst *net.UDPAddr, src *net.UDPAddr) (int, error) {
+	core.WriteTo(data, dst, src)
 	return 0, nil
 }
 
@@ -57,6 +70,7 @@ func NewTUNFD(tunDev io.ReadWriteCloser, handler tungate.TUNHandler, udpNat tung
 	//core.RegisterTCPConnHandler(redirect.NewTCPHandler("127.0.0.1:5201"))
 
 	core.RegisterUDPConnHandler(t)
+	core.RegisterRawUDPHandler(udpNat)
 	
 	core.RegisterOutputFn(func(data []byte) (int, error) {
 		//log.Println("ip2tunW: ", len(data))

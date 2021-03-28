@@ -12,6 +12,7 @@ import (
 	"github.com/costinm/tungate/pkg/lwip"
 	"github.com/costinm/ugate"
 	"github.com/costinm/ugate/pkg/auth"
+	"github.com/costinm/ugate/pkg/udp"
 	"github.com/costinm/ugate/pkg/ugatesvc"
 )
 
@@ -33,15 +34,16 @@ func main() {
 	}
 
 	// By default, pass through using net.Dialer
-	ug := ugatesvc.NewGate(&net.Dialer{}, auth, cfg)
-
-	fd, err := tungate.OpenTun("dmesh1")
+	ug := ugatesvc.NewGate(&net.Dialer{}, auth, cfg, config)
+	fd, err := tungate.OpenTun("dmesh")
 	if err != nil {
 		log.Fatal("Failed to open tun", err)
 	}
 
-	tun := lwip.NewTUNFD(fd,ug, ug)
-	ug.TUNUDPWriter = tun
+	udpG := udp.NewUDPGate(nil, nil)
+
+	tun := lwip.NewTUNFD(fd,ug, udpG)
+	udpG.TransparentUDPWriter = tun
 
 	log.Println("TUN started ", tun)
 
