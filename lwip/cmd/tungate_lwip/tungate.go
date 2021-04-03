@@ -2,19 +2,40 @@ package main
 
 import (
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"os"
 
-	"github.com/costinm/tungate"
-	"github.com/costinm/tungate/pkg/lwip"
+	"github.com/costinm/tungate/lwip/pkg/lwip"
+
 	"github.com/costinm/ugate"
 	"github.com/costinm/ugate/pkg/auth"
 	"github.com/costinm/ugate/pkg/udp"
 	"github.com/costinm/ugate/pkg/ugatesvc"
+
+	"github.com/songgao/water"
 )
+
+// If NET_CAP or owner, open the tun.
+func OpenTun(ifn string) (io.ReadWriteCloser, error) {
+	config := water.Config{
+		DeviceType: water.TUN,
+		PlatformSpecificParams: water.PlatformSpecificParams{
+			Persist: true,
+		},
+	}
+	config.Name = ifn
+	ifce, err := water.New(config)
+
+	if err != nil {
+		return nil, err
+	}
+	return ifce.ReadWriteCloser, nil
+}
+
 
 // Similar with the sample micro-gate, but adding a TUN capture.
 // Used to experiment with TUN instead of iptables capture.
@@ -35,7 +56,7 @@ func main() {
 
 	// By default, pass through using net.Dialer
 	ug := ugatesvc.NewGate(&net.Dialer{}, auth, cfg, config)
-	fd, err := tungate.OpenTun("dmesh")
+	fd, err := OpenTun("dmesh")
 	if err != nil {
 		log.Fatal("Failed to open tun", err)
 	}

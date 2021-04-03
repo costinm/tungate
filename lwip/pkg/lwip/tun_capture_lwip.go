@@ -5,7 +5,6 @@ import (
 	"log"
 	"net"
 
-	"github.com/costinm/tungate"
 	"github.com/eycorsican/go-tun2socks/core"
 )
 
@@ -18,8 +17,8 @@ const (
 // LWIPTun adapts the LWIP interfaces - in particular UDPConn
 type LWIPTun struct {
 	lwip       core.LWIPStack
-	tcpHandler tungate.TUNHandler
-	udpHandler tungate.UDPHandler
+	tcpHandler TUNHandler
+	udpHandler UDPHandler
 }
 
 // Called by udp_conn.newUDPConn. conn will hold a chan of packets.
@@ -56,7 +55,7 @@ func (t *LWIPTun) WriteTo(data []byte, dst *net.UDPAddr, src *net.UDPAddr) (int,
 	return 0, nil
 }
 
-func NewTUNFD(tunDev io.ReadWriteCloser, handler tungate.TUNHandler, udpNat tungate.UDPHandler) *LWIPTun {
+func NewTUNFD(tunDev io.ReadWriteCloser, handler TUNHandler, udpNat UDPHandler) *LWIPTun {
 
 	lwip := core.NewLWIPStack()
 

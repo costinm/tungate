@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/costinm/tungate"
-
 	"gvisor.dev/gvisor/pkg/context"
 	"gvisor.dev/gvisor/pkg/sentry/socket/netfilter"
 	"gvisor.dev/gvisor/pkg/sentry/socket/netstack"
@@ -44,8 +42,33 @@ type GvisorTun struct {
 
 	// If set, will be used to handle accepted TCP connections and UDP packets.
 	// Else the Listener interface is used.
-	Handler    tungate.TUNHandler
-	UDPHandler tungate.UDPHandler
+	Handler    TUNHandler
+	UDPHandler UDPHandler
+}
+
+// Interface implemented by TUNHandler.
+type UDPHandler interface {
+	HandleUdp(dstAddr net.IP, dstPort uint16,
+			localAddr net.IP, localPort uint16,
+			data []byte)
+}
+
+// UdpWriter is the interface implemented by the TunTransport, to send
+// packets back to the virtual interface
+type UdpWriter interface {
+	WriteTo(data []byte, dstAddr *net.UDPAddr, srcAddr *net.UDPAddr) (int, error)
+}
+
+
+// Interface implemented by TUNHandler.
+// Important: for android the system makes sure tun is the default route, but
+// packets from the VPN app are excluded.
+//
+// On Linux we need a similar setup. This still requires iptables to mark
+// packets from istio-proxy, and use 2 routing tables.
+//
+type TUNHandler interface {
+	HandleTUN(conn net.Conn, target *net.TCPAddr) error
 }
 
 
@@ -165,7 +188,7 @@ The NetworkDispatcher.DeliverNetworkPacket is also implemented by NIC
 
 */
 
-func NewTUNFD(fd io.ReadWriteCloser, handler tungate.TUNHandler, udpNat tungate.UDPHandler) tungate.UdpWriter {
+func NewTUNFD(fd io.ReadWriteCloser, handler TUNHandler, udpNat UDPHandler) UdpWriter {
 	//var err error
 	var linkID stack.LinkEndpoint
 
@@ -257,7 +280,7 @@ func (*mymatch) 	Match(hook stack.Hook, pkt *stack.PacketBuffer, interfaceName s
 
 // NewTunCapture creates an in-process tcp stack, backed by an tun-like network interface.
 // All TCP streams initiated on the tun or localhost will be captured.
-func NewGvisorTunCapture(ep *stack.LinkEndpoint, handler tungate.TUNHandler, udpNat tungate.UDPHandler, snif bool) *GvisorTun {
+func NewGvisorTunCapture(ep *stack.LinkEndpoint, handler TUNHandler, udpNat UDPHandler, snif bool) *GvisorTun {
 	t := &GvisorTun{
 		Handler: handler,
 		UDPHandler: udpNat,
@@ -539,7 +562,7 @@ func (nt *GvisorTun) defUdp6Server() error {
 //	Dump = false
 //)
 
-func (nt *GvisorTun) DefTcpServer(handler tungate.TUNHandler)  {
+func (nt *GvisorTun) DefTcpServer(handler TUNHandler)  {
 	var wq waiter.Queue
 	// No address - listen on all
 	//err = ep.Bind(tcpip.FullAddress{
