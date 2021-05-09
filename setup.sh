@@ -107,8 +107,10 @@ start() {
   #iptables -t mangle -A DMESH_MANGLE_OUT -p tcp -d 169.254.169.254 -j DROP
 
   # Explicit by-port capture, for testing
-  iptables -t mangle -A DMESH_MANGLE_OUT -j MARK -p tcp --dport 5201 --set-mark ${TUNFW}8
-  iptables -t mangle -A DMESH_MANGLE_OUT -j MARK -p udp --dport 5201 --set-mark ${TUNFW}8
+#  iptables -t mangle -A DMESH_MANGLE_OUT -j MARK -p tcp --dport 5201 --set-mark ${TUNFW}8
+#  iptables -t mangle -A DMESH_MANGLE_OUT -j MARK -p udp --dport 5201 --set-mark ${TUNFW}8
+  iptables -t mangle -A DMESH_MANGLE_OUT -j MARK -p udp --dport 12311 --set-mark ${TUNFW}8
+
   #iptables -t mangle -A DMESH_MANGLE_OUT -j MARK -p tcp --dport 80 --set-mark 1338
 
   # Jump to the ISTIO_OUTPUT chain from OUTPUT chain for all tcp traffic.

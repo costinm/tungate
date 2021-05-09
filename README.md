@@ -1,5 +1,9 @@
 # TUN-based gateway.
 
+Deprecated: gvisor and LwIP moved to costinm/ugate/ext, netstack is 
+no longer maintained upstream, preserved as baseline (was my first tun 
+implementation for android).
+
 This package is an extension to the costinm/ugate package, providing 
 capture using a TUN device, primarily used for Android. 
 

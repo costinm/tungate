@@ -1,20 +1,14 @@
-OUT ?= build
+OUT ?= $(shell pwd)/build
 
-all:  lwip ugate
+all:  ugate
+	$(MAKE) TAG=lwip gotag
 	$(MAKE) TAG=netstack gotag
 	$(MAKE) TAG=gvisor gotag
+	ls -l ${OUT}
 
-
-stop:
-
-lwip:
-	go build  -o ${OUT}/tun_lwip ./cmd/tungate_lwip
-	ls -l ${OUT}/tun_lwip
-	strip ${OUT}/tun_lwip
-	ls -l ${OUT}/tun_lwip
 
 ugate:
-	CGO_ENABLED=0 go build -o ${OUT}/ugate github.com/costinm/ugate/cmd/ugate
+	CGO_ENABLED=0 go build -o ${OUT}/ugate github.com/costinm/ugate/cmd/ugatemin
 	ls -l ${OUT}/ugate
 	strip ${OUT}/ugate
 	ls -l ${OUT}/ugate
